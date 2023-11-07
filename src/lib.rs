@@ -1,7 +1,7 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, format_ident};
 use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
 #[allow(clippy::panic)]
@@ -10,28 +10,35 @@ pub fn assert_no_slop(_: TokenStream, input: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(input as DeriveInput);
     let struct_name = &derive_input.ident;
 
+    let struct_name_uppercase = struct_name.to_string().to_uppercase();
+
     let expanded = match &derive_input.data {
         Data::Struct(data_struct) => match &data_struct.fields {
             Fields::Named(fields) => {
                 let field_sizes = fields.named.iter().map(|field| &field.ty);
                 let sizes_sum = quote! { #(std::mem::size_of::<#field_sizes>())+* };
+                let struct_size_name = format_ident! { "{}_STRUCT_SIZE", struct_name_uppercase };
+                let field_sizes_name = format_ident! {  "{}_FIELD_SIZES", struct_name_uppercase };
 
                 quote! {
-                    const paste! { [<#struct_name _STRUCT_SIZE>] }: usize = std::mem::size_of::<#struct_name>();
-                    const paste! { [<#struct_name _FIELD_SIZES>] }: usize = #sizes_sum;
+                    const #struct_size_name : usize = std::mem::size_of::<#struct_name>();
+                    const #field_sizes_name : usize = #sizes_sum;
 
-                    const_assert_eq!(paste! { [<#struct_name _STRUCT_SIZE>] }, paste! { [<#struct_name _FIELD_SIZES>] });
+                    const_assert_eq!(#struct_size_name, #field_sizes_name);
                 }
             }
             Fields::Unnamed(fields) => {
                 let field_types = fields.unnamed.iter().map(|field| &field.ty);
                 let sizes_sum = quote! { #(std::mem::size_of::<#field_types>())+* };
 
-                quote! {
-                    const paste! { [<#struct_name _STRUCT_SIZE>] }: usize = std::mem::size_of::<#struct_name>();
-                    const paste! { [<#struct_name _FIELD_SIZES>] }: usize = #sizes_sum;
+                let struct_size_name = format_ident! { "{}_STRUCT_SIZE", struct_name_uppercase };
+                let field_sizes_name = format_ident! {  "{}_FIELD_SIZES", struct_name_uppercase };
 
-                    const_assert_eq!(paste! { [<#struct_name _STRUCT_SIZE>] }, paste! { [<#struct_name _FIELD_SIZES>] });
+                quote! {
+                    const #struct_size_name : usize = std::mem::size_of::<#struct_name>();
+                    const #field_sizes_name : usize = #sizes_sum;
+
+                    const_assert_eq!(#struct_size_name, #field_sizes_name);
                 }
             }
             Fields::Unit => {
