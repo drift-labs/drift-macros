@@ -24,7 +24,7 @@ pub fn assert_no_slop(_: TokenStream, input: TokenStream) -> TokenStream {
                     const #const_struct_size_name: usize = std::mem::size_of::<#struct_name>();
                     const #const_field_sizes_name: usize = #sizes_sum;
 
-                    const_assert_eq!(#const_struct_size_name, const_field_sizes_name);
+                    const_assert_eq!(STRUCT_SIZE, FIELD_SIZES);
                 }
             }
             Fields::Unnamed(fields) => {
@@ -35,7 +35,7 @@ pub fn assert_no_slop(_: TokenStream, input: TokenStream) -> TokenStream {
                     const #const_struct_size_name: usize = std::mem::size_of::<#struct_name>();
                     const #const_field_sizes_name: usize = #sizes_sum;
 
-                    const_assert_eq!(#const_struct_size_name, const_field_sizes_name);
+                    const_assert_eq!(STRUCT_SIZE, FIELD_SIZES);
                 }
             }
             Fields::Unit => {
