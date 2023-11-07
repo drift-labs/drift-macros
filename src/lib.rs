@@ -10,6 +10,10 @@ pub fn assert_no_slop(_: TokenStream, input: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(input as DeriveInput);
     let struct_name = &derive_input.ident;
 
+    let struct_name_uppercase = struct_name.to_string().to_uppercase();
+    let const_struct_size_name = format!("{}_STRUCT_SIZE", struct_name_uppercase);
+    let const_field_sizes_name = format!("{}_FIELD_SIZES", struct_name_uppercase);
+
     let expanded = match &derive_input.data {
         Data::Struct(data_struct) => match &data_struct.fields {
             Fields::Named(fields) => {
@@ -17,8 +21,8 @@ pub fn assert_no_slop(_: TokenStream, input: TokenStream) -> TokenStream {
                 let sizes_sum = quote! { #(std::mem::size_of::<#field_sizes>())+* };
 
                 quote! {
-                    const STRUCT_SIZE: usize = std::mem::size_of::<#struct_name>();
-                    const FIELD_SIZES: usize = #sizes_sum;
+                    const #const_struct_size_name: usize = std::mem::size_of::<#struct_name>();
+                    const #const_field_sizes_name: usize = #sizes_sum;
 
                     const_assert_eq!(STRUCT_SIZE, FIELD_SIZES);
                 }
@@ -28,8 +32,8 @@ pub fn assert_no_slop(_: TokenStream, input: TokenStream) -> TokenStream {
                 let sizes_sum = quote! { #(std::mem::size_of::<#field_types>())+* };
 
                 quote! {
-                    const STRUCT_SIZE: usize = std::mem::size_of::<#struct_name>();
-                    const FIELD_SIZES: usize = #sizes_sum;
+                    const #const_struct_size_name: usize = std::mem::size_of::<#struct_name>();
+                    const #const_field_sizes_name: usize = #sizes_sum;
 
                     const_assert_eq!(STRUCT_SIZE, FIELD_SIZES);
                 }
