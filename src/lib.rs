@@ -17,10 +17,12 @@ pub fn assert_no_slop(_: TokenStream, input: TokenStream) -> TokenStream {
                 let sizes_sum = quote! { #(std::mem::size_of::<#field_sizes>())+* };
 
                 quote! {
-                    const STRUCT_SIZE: usize = std::mem::size_of::<#struct_name>();
-                    const FIELD_SIZES: usize = #sizes_sum;
+                    {
+                        const STRUCT_SIZE: usize = std::mem::size_of::<#struct_name>();
+                        const FIELD_SIZES: usize = #sizes_sum;
 
-                    const_assert_eq!(STRUCT_SIZE, FIELD_SIZES);
+                        const_assert_eq!(STRUCT_SIZE, FIELD_SIZES);
+                    }
                 }
             }
             Fields::Unnamed(fields) => {
@@ -28,10 +30,12 @@ pub fn assert_no_slop(_: TokenStream, input: TokenStream) -> TokenStream {
                 let sizes_sum = quote! { #(std::mem::size_of::<#field_types>())+* };
 
                 quote! {
-                    const STRUCT_SIZE: usize = std::mem::size_of::<#struct_name>();
-                    const FIELD_SIZES: usize = #sizes_sum;
+                    {
+                        const STRUCT_SIZE: usize = std::mem::size_of::<#struct_name>();
+                        const FIELD_SIZES: usize = #sizes_sum;
 
-                    const_assert_eq!(STRUCT_SIZE, FIELD_SIZES);
+                        const_assert_eq!(STRUCT_SIZE, FIELD_SIZES);
+                    }
                 }
             }
             Fields::Unit => {
